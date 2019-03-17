@@ -1,0 +1,239 @@
+---
+title: "Data Manipulation-Rcourse2"
+author: "busra nur darendeli"
+date: "14 Mart 2019"
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE}
+
+data <- read.csv("data.txt")
+data
+
+data <- data[-1]
+
+```
+
+
+
+```{r}
+sample_frac(data,0.1)
+```
+
+
+
+```{r}
+sample_n(data,3)
+```
+
+```{r}
+dup <- distinct(data)
+str(dup)
+```
+
+```{r}
+sample_data <- read.csv("sampledata.csv")
+summary(sample_data)
+dim(sample_data)
+str(sample_data)
+```
+
+##veri setinde özgün olan deðerlere ulaþmak için
+
+```{r}
+dupp <- distinct(sample_data)
+dim(dupp)    #çok fark olmadý
+```
+
+## belirli sütuna göre düzenleme yapmak için 
+
+```{r}
+Rdupp1 <- distinct(sample_data, Index, .keep_all = TRUE )
+Rdupp1
+```
+
+#Select komutu 
+
+```{r}
+Newdata1 = select(sample_data, Index, State:Y2008)
+
+Newdata1
+```
+
+```{r}
+Newdata2 = select(sample_data, -Index, -State)
+
+Newdata2
+```
+
+```{r}
+Newdata4 = select(sample_data, -starts_with("Y"))
+Newdata4
+```
+
+```{r}
+Newdata6 = select(sample_data, State, everything())  #ilk kolonu state yapýp diðerlerini yanýna diziyor, ilk state yazýldýðý için ilk kolonumuz State
+Newdata6
+```
+
+# Renama func
+
+```{r}
+
+R1 = rename(sample_data, Endeks = Index)
+
+R1
+```
+
+#Filter func
+
+%in% dplyr'a özgü bir notasyon
+Çoklu ögeler için kullanýlýyor
+
+```{r}
+F.data = filter(sample_data, Index == "A")
+
+F.data
+
+```
+
+ilter(data, Index %in% c("A", "C")) indexin içinde hem A hem C olanlarý filtrele
+
+```{r}
+
+
+
+
+```
+
+filter(data, Index %in% c("A", "C") & Y2002 >= 1300000 ) --> index içinde A ve C içeren ve 2002deki karlýlýk 13000000ten fazla olanlar
+```{r}
+F.data3 = filter(sample_data, Index %in% c("A", "C") & Y2002 >= 1300000 )
+F.data3
+```
+
+F.data5 = filter(data, !Index %in% c("A", "C"))
+
+```{r}
+F.data5 = filter(sample_data, !Index %in% c("A", "C"))
+F.data5
+
+```
+
+
+F.data6  = filter(data, grepl("Ar", State)) grepl komutu ile Ar yan yana olanlarý filtreledik.
+
+```{r}
+F.data6  = filter(sample_data, grepl("Ar", State))
+F.data6
+```
+
+#Summarise func
+
+```{r}
+summarise(sample_data, Y2015_ortlama = mean(Y2015), Y2015_ortanca=median(Y2015))
+
+
+```
+
+2005 ve 2006nýn ortalama ve medianýný aldý yukarýdaki gibi funs(n()) ile kaç deðerin ortalamasýný aldýðýný gösteriyor. 
+```{r}
+
+summarise_at(sample_data, vars(Y2005, Y2006), funs(n(), mean, median))
+
+```
+
+
+missing deðer var mý yok mu bu þekilde kontrol ediyoruz
+```{r}
+summarise_at(sample_data, vars(Y2011, Y2012),funs(n(), missing = sum(is.na(.)), mean(., na.rm = TRUE), median(.,na.rm = TRUE)))
+
+```
+
+summarise_if ile koþula baðlý özetleme yapýlýr.
+is.numeric --> sadece numeric olanlar 
+
+```{r}
+summarise_if(sample_data, is.numeric,funs(n(),mean,median))
+
+```
+
+sample_data["Index"] dediðimizde datanýn içindeki indexte çalýþýyor
+```{r}
+
+summarise_all(sample_data["Index"], funs(nlevels(.), nmiss=sum(is.na(.))))
+
+```
+
+#Arrange func
+
+arrange(data, Index, Y2011) data'yý indexte artan olarak sýralar
+arrange(data, desc(Index), Y2011) azalan sýrada sýralar
+
+```{r}
+
+arrange(sample_data, desc(Index), Y2011)
+```
+
+#Pipe operator
+
+herhangi 10 tane index ve state isimlerini içerecek þekilde vermiþ oldu
+```{r}
+
+sample_data %>% 
+select(Index, State) %>% sample_n(10)
+
+
+```
+
+#Group_by func
+
+indexin içinde A,C,I harfleri içerenleri yine indexe göre gruplayarak her birinin baþýndaki iki taneyi(do(head())) getirir
+```{r}
+Gdata2 = sample_data %>% filter(Index %in% c("A", "C","I")) %>% group_by(Index) %>% do(head( . , 2))
+Gdata2
+
+```
+
+index ve 2015 yýlýný seçip indexte A,C,I içerenleri yine indexe göre gruplayarak 2015i tersten sýrala ve slicetan ötürü gruptan bir örnek getiriyor
+```{r}
+Gdata3 = sample_data %>% select(Index, Y2015) %>%
+  filter(Index %in% c("A", "C","I")) %>%
+  group_by(Index) %>%
+  do(arrange(.,desc(Y2015))) %>%  slice(3)
+
+Gdata3
+```
+#Mutate func
+
+```{r}
+Mdata = mutate(sample_data, Degisim=Y2015/Y2014)
+Mdata
+
+```
+hepsini 1000 ile çarparak "yeni" diye bir sütun oluþturacak
+
+```{r}
+Mdata2 = mutate_all(sample_data, funs("yeni" = .* 1000))
+Mdata2
+```
+
+mutate_at'i belirli deðiþkenlerde çalýþacaksak kullanýyoruz
+
+2008 ile 2010 arasýndakilerin rank'li hallerini _Rank kolonlarý ile verdi
+
+```{r}
+Mdata3 = mutate_at(sample_data, vars(Y2008:Y2010), funs(Rank=min_rank(.)))
+Mdata3
+```
+
+#Intersect func
+kesiþim
+
+```{r}
+mtcars$model <- rownames(mtcars)
+bolut1 <- mtcars[1:20, ]
+bolut2 <- mtcars[10:32, ]
+intersect(bolut1, bolut2)
+```
+

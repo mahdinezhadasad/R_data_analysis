@@ -1,0 +1,118 @@
+---
+title: "data-preprocessing-rcourse2"
+author: "busra nur darendeli"
+date: "14 Mart 2019"
+output: html_document
+---
+
+#Eksik Veriyi Tamamlama
+```{r message=FALSE, warning=FALSE}
+library(mice)
+library(VIM)
+library(missForest)
+
+```
+
+```{r}
+data(iris)
+summary(iris)
+iris
+```
+
+prodNA func ile noNA kýsmý çalýþacak ve random olarak %20sine gelecek sekilde eksik deðerler oluþturacak dataset içinde 
+```{r}
+M.data <- prodNA(iris, noNA = 0.2)
+summary(M.data)
+
+M.data
+```
+Tür kolonunu içermeyen bir M.data verisi oluþtýuruyprusz
+```{r}
+M.data <- subset(M.data, select = -c(Species))
+
+md.pattern(M.data) #eksik deðerlere dair örüntüleri hesaplýyor  
+
+
+```
+
+```{r}
+mice_plot <- aggr(M.data, col=c('blue', 'green'),numbers=TRUE, sortVars=TRUE,labels=names(M.data), cex.axis=.7, gap=3, ylab=c("Eksik Veri","Örüntü"))
+
+#bu grafik bize sepal lengthte yüzde 67 eksik deðer var. örüntü içinde eksik deðeleri yeþillerle gösteriyor. datasetin %20sine denk gelecek þekilde eksik veri oluþturmuþ olduk
+```
+
+#eksik veriyi tahmin etmek
+
+```{r}
+PD.data<- mice(M.data, m=5, maxit = 50, method = 'pmm', seed = 500) # 5 iterasyonla 50ye kadar bu iþlemi tekrarlýyor. 50. kýsým için 5 defa çalýþýyor demek. m=5 komutu bunu saðlýyor. "pmm" metodu paketin kendi içindeki komutlardan biri, seed komutu da bunu random yaptýðýný söylüyor. 
+summary(PD.data)
+
+#eksik verileri otomatik olarak tahmin ederek yerini doldurmaya çalýþcak
+
+
+#5 imputasyon yaptým tahminde kullandýðým metod "pmm" metodu. Predictor matrix ile gözlem deðerini oluþturdum her birine mutlaka deðer atamasý yaptýðýný gösteren bir matris bu
+
+```
+#datayý tamamlama
+imputasyonlardan hangisini seçersek ona göre tamamlar
+
+```{r}
+T2.iris<- complete(PD.data,2) #2.tahmin(imputasyon)e göre dolduruyor 
+T2.iris
+```
+#Amelia
+Bu dataset deðiþkenlerin normal daðýlýma sahip olduðunu düþünür bunun üzerine güçlü bir tahmin yapan pakettir. önceki pakette metodlarý belirleyip tahmin yapýyordu amelia birkaç metodu ayný anda kullanýyor. datasetten bir örneklem alýyor bunlar üzerine bir algoritma kuruyor ve bunun sonrasýnda tahminleme yapýyor 
+datasetin %10u kadar NA atýyoruz 
+```{r}
+library(Amelia)
+M.data <- prodNA(iris, noNA = 0.1)
+summary(M.data)
+
+```
+
+```{r}
+amelia_fit <- amelia(M.data, m=5, parallel = "multicore", noms = "Species") #% imputasyon yapýyoruz 
+#amelia fit imputationslar her bir imputasyonda ne yaptýðýný kaydediyor
+
+amelia_fit$imputations[[1]]
+amelia_fit$imputations[[2]]
+amelia_fit$imputations[[5]]$Sepal.Length
+write.amelia(amelia_fit, file.stem = "tamamlanmýþ veriler") #tamamlanmýþ iris verisetini directorye kaydediyor, directoryde tamamlanmþ veriler olark csv dosyalarý var 
+
+
+```
+
+#missForest
+Karar aðacý tabanlý. Her bir deðiþken için randomforest modeli üretir bu modele göre de tahminler. bu yüzden diðer yöntemlere göre hatasý daha düþük. 
+
+```{r}
+M.data <- prodNA(iris, noNA = 0.3)
+summary(M.data)
+
+```
+
+```{r}
+Imp.data <- missForest(M.data) #otomatik imputasyon 
+
+```
+
+```{r}
+Imp.data$ximp
+
+```
+```{r}
+Imp.data$OOBerror #continous ve categoric deðiþkenlerdeki hata oranýný veriyor, kendi karar aðacýndaki tahminlerde hata miktarý  
+
+```
+
+```{r}
+H.data <- mixError(Imp.data$ximp, M.data, iris) #orijinale göre hata miktarý 
+H.data
+
+```
+
+```{r}
+p<-spm(~mpg+wt+disp+hp | cyl, data=mtcars, diagonal="boxplot")
+
+```
+

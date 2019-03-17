@@ -1,0 +1,205 @@
+---
+title: "advance-visualization-rcourse2"
+author: "busra nur darendeli"
+date: "14 Mart 2019"
+output: html_document
+---
+
+#Advance Visualization
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(gridExtra)
+library(ggthemes) 
+```
+
+```{r}
+attach(diamonds)
+head(diamonds)
+summary(diamonds)
+names(diamonds)
+dim(diamonds)
+unique(diamonds$clarity)
+unique(diamonds$carat)
+
+```
+##1
+
+```{r}
+ggplot(data=diamonds) + geom_histogram(binwidth=500, aes(x=diamonds$price)) + ggtitle("Fiyat Dagilim") + xlab("Dolar Cinsinden Fiyat") + ylab("Frekans") + theme_minimal()
+
+#binwith =500 her bir aralýk 500ü ifade ediyor demek 
+
+```
+
+##2
+
+```{r}
+ggplot(data=diamonds) + geom_histogram(binwidth=500, aes(x=diamonds$price)) + ggtitle("Fiyat Dagilim") + xlab("Dolar Cinsinden FÝyat- Binwidth 500") + ylab("Frekans") + theme_minimal() + xlim(0,2500)
+
+#xlim komutu x eksenine sýnýr çiziyor. 0 ile 2500 arasýný görmek istiyoruz. binwith yine ayný fakat verilerimiz kýsýtlandýðý için aralýk artmýþ oldu.
+
+```
+
+##3 
+
+```{r}
+ggplot(data=diamonds) + geom_histogram(binwidth=50, aes(x=diamonds$price)) + ggtitle("Fiyat Dagilim") + xlab("Dolar Cinsinden FÝyat- Binwidth 50") + ylab("Frekans") + theme_minimal() + xlim(0,2500)
+
+#binwith deðeri farklý, daha hassas. 
+
+```
+
+#Gruplayarak Daðýlým
+
+Bu iþlemin komutu --Z facet_wrap 
+
+##4 
+
+```{r}
+ ggplot(data=diamonds) + geom_histogram(binwidth=100, aes(x=diamonds$price)) + ggtitle("Fiyatlarýn Kesime Göre Dagilimi") + xlab("Dolar Cinsinden Fiyat") + ylab("Frekans") + theme_minimal() + facet_wrap(~cut)
+
+#5 farklý deðere göre gruplayýp çizim yapýlmýþ oldu. 
+```
+
+##5
+
+```{r}
+ggplot(data=diamonds) + geom_histogram(binwidth=100, aes(x=diamonds$price)) + ggtitle("Fiyatlarýn Kesime Göre Dagilimi") + xlab("Dolar Cinsinden Fiyat") + ylab("Frekans") + theme_minimal() + facet_wrap(~cut, scales="free_y")
+
+#cut deðiþkeninden sonra "scales" ile her y deðiþkenine göre farklý ölçeklerde y ekseninde deðerleri olacak
+```
+
+##6
+
+```{r}
+ggplot(data=diamonds) + geom_histogram(binwidth=50, aes(x=diamonds$price/diamonds$carat)) + ggtitle("Fiyatlarýn Kesime Göre Daðýlýmý") + xlab("Dolar Cinsinden Fiyat") + ylab("Frequency") + theme_minimal() + facet_wrap(~cut)
+
+#y'ye göre scale edilmedi binwith 50ye düþürülerek daha ince daha hassas görüntü elde ediliyor
+```
+
+##7
+
+```{r}
+ggplot(data=diamonds) + geom_histogram(binwidth=0.01, aes(x=diamonds$price/diamonds$carat)) + ggtitle("Diamond Price per Carat Distribution by Cut") + xlab("Diamond Price per Carat U$ - LOG 10 Scale") + ylab("Frequency") + theme_minimal() + facet_wrap(~cut) + scale_x_log10()
+
+```
+
+#Boxplot
+
+##8
+
+```{r}
+
+ggplot(diamonds, aes(factor(cut), price, fill=cut)) + geom_boxplot() + ggtitle("Kesime Gore Fiyat") + xlab("Kesimin Turu") + ylab("Dolar Cinsinden Fiyat") + coord_cartesian(ylim=c(0,7500))
+
+#boxplotta parametreleri ggplot içine yazýyoruz. fill= cut dediðimizde cut'a göre renklendirecek, normalde cut string deðerlere sahip bu yüzden ilk baþta factor(cut) yazýyoruz böylelikle cut'a göre atama yapabiliyor. 
+
+```
+
+##9
+
+```{r}
+ggplot(diamonds, aes(factor(clarity), price, fill=clarity)) + geom_boxplot() + ggtitle("Berrakliga Gore Fiyat") + xlab("Berraklik") + ylab("Dolar Cinsinden Fiyat") + coord_cartesian(ylim=c(0,7500))
+```
+
+##10
+
+```{r}
+ggplot(diamonds, aes(factor(color), (price/carat), fill=color)) + geom_boxplot() + ggtitle("Farklý Renklerde Karat Baþýna Düþen Fiyat ") + xlab("Renk") + ylab("Dolar Cinsinden Karat Baþýna Düþen Fiyat")
+```
+
+##11
+
+```{r}
+ggplot(diamonds, aes(factor(color), (price/carat), fill=color)) + geom_boxplot() + ggtitle(" Farklý Renklerde Karat Baþýna Düþen Fiyat ") + xlab("Renk") + ylab(" Dolar Cinsinden Karat Baþýna Düþen Fiyat") + coord_cartesian(ylim=c(0,7500))
+
+```
+
+#Frekans
+
+Frekans grafikleri y ekseni almýyor. 
+
+##12
+
+```{r}
+ggplot(data=diamonds, aes(x=carat)) + geom_freqpoly() + ggtitle("Karata Göre Frekans") + xlab("Karat Büyüklüðü") + ylab("Miktar")
+
+#çokluk belirtiyor. o karat miktarýnda ne kadar elmas var bu deðerleri veriyor bize 
+```
+
+##13
+
+```{r}
+ggplot(data=diamonds, aes(x=carat)) + geom_freqpoly(binwidth = 0.025) + ggtitle(" Karata Göre Frekans") + xlab("Karat Büyüklüðü ") + ylab("Miktar") + scale_x_continuous(minor_breaks = seq(0, 5.5, 0.1))
+
+
+```
+
+#Saçýlým-Nokta Grafikleri
+
+##14
+
+```{r}
+ggplot(diamonds,aes(carat,price))+geom_point(colour="darkblue")
+
+
+```
+
+##15
+
+```{r}
+ggplot(diamonds,aes(carat,price,color=clarity))+geom_point() + theme_minimal()
+
+
+```
+
+##16
+
+```{r}
+
+ggplot(diamonds,aes(carat,price,color=clarity))+geom_point()+xlab("Karat")+ylab("Fiyat")+ ggtitle(" geom_point() ile Karata Karþýlýk Fiyat")
+
+
+```
+
+##17
+
+```{r}
+ggplot(diamonds,aes(carat,price,color=clarity,size=price))+geom_point()+xlab("Karat")+ylab("Fiyat")+ggtitle("geom_point() Karat, Fiyat, Büyüklük")
+```
+
+##18
+
+```{r}
+ggplot(diamonds,aes(carat,price,color=clarity,size=price,shape=cut))+geom_point()+xlab("Log10 Karat")+ylab("Log10 Fiyat")+ ggtitle("geom_point() Log10 Tabanýnda Karat-Fiyat, Büyüklük ve Þekil")
+
+
+```
+
+##19
+
+```{r}
+ggplot(diamonds,aes(carat,price,color=clarity,size=price))+geom_point()+xlab("Log10 Karat")+ylab("Log10 Fiyat")+
+ggtitle("geom_point() Log10 Tabanýnda Karat-Fiyat, Büyüklük")+facet_wrap( ~clarity)+scale_x_log10()+scale_y_log10()
+
+
+```
+
+##20
+
+```{r}
+ggplot(diamonds,aes(carat,price,color=clarity,size=price))+geom_point()+xlab("Log10 Karat")+ylab("Log10 Fiyat")+ggtitle("geom_point() ve facet_grid Log10 Karat-Fiyat, Büyüklük")+facet_grid(clarity ~cut)+scale_x_log10()+scale_y_log10()
+
+#facet_wrap içine iki deðiþken yazmak istersek facet_grid kullanýlýyor
+
+```
+
+##21
+
+```{r}
+ggplot(diamonds)+aes(carat,price,color=clarity,size=price)+geom_point()+geom_smooth()+scale_x_log10()+scale_y_log10()+ggtitle("geom_point() ve facet_wrap Log10 Karat-Fiyat, Büyüklük")
+
+
+```
+

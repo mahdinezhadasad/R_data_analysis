@@ -1,0 +1,142 @@
+---
+title: "project"
+author: "grup7"
+date: "16 Mart 2019"
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE}
+
+library(readxl)
+library(tidyverse)
+
+attr_data <- read_excel("Attribute DataSet.xlsx")
+dress_sales <- read_excel("Dress Sales.xlsx")
+
+str(attr_data)
+
+
+sum(is.na(dress_sales)) 
+
+
+
+
+```
+
+
+
+```{r}
+library(mice)
+library(VIM)
+library(missForest)
+
+
+mice_plot <- aggr(dress_sales, col=c('blue', 'green'),numbers=TRUE, sortVars=TRUE,labels=names(dress_sales), cex.axis=.7, gap=3, ylab=c("Eksik Veri","Örüntü"))
+
+```
+
+
+
+#2.data
+
+
+
+```{r}
+data2 <- read_csv("CalismaDatasi1.txt")
+
+data <- data2 %>% 
+  rename(ID = c("ID"="v1"), Olcum_puan_1= c("Olcum_puan_1" = "v2"), Olcum_puan_2 = c("Olcum_puan_2" = "v3"), Olcum_puan_3 = c("Olcum_puan_3" = "v4"), Olcum_puan_4 = c("Olcum_puan_4" = "v5"), Olcum_puan_5 = c("Olcum_puan_5" = "v6"), Kilo = c("Kilo" = "v7"), Mutluluk_index = c("Mutluluk_index" = "v8"), Fonksiyonel_index = c("Fonksiyonel_index" = "v9"), Olcum_puan_6 = c("Olcum_puan_6" = "v10"), Is = c("Is" = "v11"),Cinsiyet = c("Cinsiyet" = "v13"),  Uyku_suresi = c("Uyku_suresi" = "v14"), Medeni_durum = c("Medeni_durum" = "v15"),Maas = c("Maas" = "v12") )
+
+data_na <- na.omit(data)
+data_na
+```
+
+```{r}
+library(corrplot)
+data <- data %>% 
+  select(Is, Uyku_suresi, Mutluluk_index, Maas, Fonksiyonel_index) %>% 
+  filter(Is == 1) %>% 
+  select(-Is)
+ 
+sum(is.na(data))
+data_na <- na.omit(data)
+
+sum(is.na(data_na))
+str(data_na)
+```
+
+
+```{r}
+cor_data <- cor(data_na)
+
+corrplot(cor_data, method = "pie", type = "lower")
+```
+
+```{r}
+library(PerformanceAnalytics)
+chart.Correlation(data_na, method = "pearson", histogram = TRUE )
+
+# %95 güven aralýðýna göre korelasyonlarýmýz anlamlýdýr.
+
+```
+
+```{r}
+library(ggplot2)
+attach(data_na)
+ggplot(data=data_na) + geom_histogram(binwidth=100, aes(x=data_na$Maas/data_na$Is)) + ggtitle("Maaslarýn Cinsiyete Göre Daðýlýmý") + xlab("Maas") + ylab("Frequency") + theme_minimal() + facet_wrap(~ Cinsiyet)
+```
+
+```{r}
+ggplot(data_na,aes(Maas,Mutluluk_index,color=Fonksiyonel_index))+geom_point() + theme_minimal()
+```
+
+#PCA
+
+```{r}
+library(devtools)
+library(ggbiplot)
+
+
+PCA.data <- prcomp(data_na[,c(3:7,9,11)], center = TRUE, scale. = TRUE)
+summary(PCA.data)
+```
+
+```{r}
+ggbiplot(PCA.data, choices = c(3,4))
+```
+
+```{r}
+
+str(data_na)
+PCA.data2 <- prcomp(data_na[,c(3:7,9:15)], center = TRUE, scale. = TRUE)
+
+ggbiplot(PCA.data2)
+
+```
+
+#Clustering
+
+```{r}
+library(ggplot2)
+library(cluster)
+library(class)
+
+data_na
+
+dcluster <- kmeans(data_na[, 9:13], 3, nstart = 20)
+dcluster
+```
+
+```{r}
+
+x <- fviz_cluster(dcluster, data_na[, 9:13], geom = "text" )
+print(x+ggtitle("People clustering with k-means 3")+theme_wsj())
+
+```
+
+```{r}
+y <- hcut(data_na[, 9:13], k = 3, hc_method = "complete")
+z <- fviz_dend(y, main = "People clustering with k-means 3", show_labels = TRUE, rect = TRUE)
+z
+```
+

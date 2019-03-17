@@ -1,0 +1,321 @@
+---
+title: "Data Visualization - Rcourse2"
+author: "busra nur darendeli"
+date: "14 Mart 2019"
+output: html_document
+---
+
+#DATA VISUALIZATION
+iki önemli paket var:
+lattice
+ggplot2 --> Hadley Wickham
+
+Elinizde gözlem sayýsý çoksa "hexbin" grafikler oluþturulur. Bu birbirine komþu olan verileri bir araya getiriyor ve altýgenler haline getiriyor, böylece verileri altýgen kümeler halinde görüyoruz.Bal petekleri þeklinde bir daðýlým verir. 
+
+##Plot func
+temel fonk bu. Bu fonksiyonu renklendirmek için pek çok func var 
+
+plot(mpg)
+rainbow(n)
+heat.colors(n)
+terrain.colors(n)
+topo.colors(n)
+cm.colors(n)
+n=seq(1:12)
+barplot(n)
+barplot(seq(1:12), col=topo.colors(12))
+
+```{r message=FALSE, warning=FALSE}
+data(mtcars)
+attach(mtcars)
+plot(mpg)
+
+n=seq(1:12)
+```
+
+
+```{r}
+barplot(n)
+```
+
+```{r}
+barplot(n, col=topo.colors(12))
+```
+
+```{r}
+n =12
+
+par(mfrow=c(2,2)) #içindeki sayýlara göre oluþturulan matriksleri yerleþtiriyo
+pie(rep(1,n), main="rainbow", col=rainbow(n))
+pie(rep(1,n), main="heat", col=heat.colors(n))
+pie(rep(1,n), main="terrain", col=terrain.colors(n))
+pie(rep(1,n), main="topo", col=topo.colors(n))
+
+```
+library(RColorBrewer) renk paketi bunu görüntülemek için de þu komutu çalýþtýrabiliriz -->  display.brewer.all()
+
+
+#Bar Plot
+
+```{r}
+counts <- table(mtcars$gear)
+counts
+
+```
+Oluþturduðuumuz tablodaki car dist baþlýðý Number of gears
+```{r}
+bg<-barplot(counts,  main="Car Distribution", xlab="Number of Gears") 
+
+```
+dikeyken yataya almasýnýn sebebi "horiz = T". Bununla dikeyde çizdiðimizi yataya aldýk ve barlarýn her birine "names.arg" ile isimlendirdik. 
+
+```{r}
+barplot(counts, main="Car Distribution", horiz=TRUE, names.arg=c("3 Gears", "4 Gears", "5 Gears"))
+
+```
+
+Yazýlmýþ yazýlarýn boyutu ile ilgili komut "las=2"
+
+```{r}
+barplot(counts, las=2, col="orange", main="Car Distribution", horiz=TRUE,names.arg=c("3 Gears", "4 Gears", "5 Gears"))
+
+```
+
+say ile vites tablosu ile gear arasýndaki tabloyu oluþturduk. 
+barplot komutunda --> main = baþlýk, legend = kenardaki 1ler ve 0larý oluþturuyor yani gruplama yapmayý saðlýyor legendler. Buradaki legend bilgisi say'ýn satýr isimlerinden geliyor. barlarý yan yana görmek için beside ? T yaparsak yan yana gösterir
+```{r}
+
+say <- table(mtcars$vs, mtcars$gear)
+
+barplot(say, main="Arabalarýn Vites ve VS Daðýlýmý",
+xlab="gear", ylab= "Vites Sayýsý", col=c("darkblue","red"), legend = rownames(say)) 
+
+
+```
+
+Beside = T ile yan yana gösteriyor. 
+
+```{r}
+renk<-c("darkblue", "red")
+barplot(say, main="Arabalarýn Vites ve VS Daðýlýmý", 
+xlab="gear = Vites Sayýsý", col=renk, beside=TRUE,
+legend =rownames(say))
+
+```
+
+legendin konumu deðiþtirilebilir. 
+
+tapply --> Rdaki fonksiyonlarý bir araya getirerek çalýþmasýný saðlýyor. bir þeye göre ortalama almak mesela.. iki ya da daha fazla deðiþkeni kullanbilmeyi saðlýyor. 
+```{r}
+mpgm=tapply(mpg , carb, mean) #her birnin carb sayýsýna göre mpg oranýný veriyor, tapply fonk sayesinde bu iþlemi yapýyor
+mpgm
+
+bg<-barplot(mpgm, names.arg=names(mpgm))
+text(x=bg, y=mpgm, labels=round(mpgm,0), pos=3)
+text(x=bg, y=mpgm, labels=round(mpgm,1), col="red",pos=1)
+
+
+```
+
+1-8in ayný renk olmasýnýn temel nedeni o gruptaki renk skalasýndan kaynaklý
+
+```{r}
+par(ask=TRUE) #R consoleda enter'a basýlana kadar sayfayý deðiþtirmiyor
+
+tsum<-tapply(mtcars$hp, factor(mtcars$carb), sum) 
+
+barplot(tsum, col=terrain.colors(5),main="hp")
+legend("topright", title="hp" ,c("4", "1" , "2" ,"3", "6" , "8"), fill=terrain.colors(5),horiz=F)
+
+
+
+```
+
+
+#Histogram
+```{r}
+
+y<-log(8)
+hist(y,breaks=5,col="yellow",border="red") #breaks= 5 olduðu için y kýsmýndaki atlamalarý 0.5 artacak þekilde ilerletti 
+
+
+```
+
+
+```{r}
+tit="Galon Baþýna Mil Histogramý"
+xl="mpg = mil per galon"
+yl="Frekans"
+hist(mtcars$mpg, main=tit, xlab=xl, ylab=yl )
+```
+
+```{r}
+hist(mtcars$mpg,col ="steelblue")
+```
+
+```{r}
+tit="Galon Baþýna Mil Histogramý"
+xl="mpg"
+yl="Frekans"
+hist(mtcars$mpg, main=tit, xlab=xl, ylab=yl, col ="orange", border= " red",    col.lab= " blue")
+
+```
+
+
+#Kernel Density
+
+```{r}
+d <- density(mtcars$mpg) 
+plot(d)
+  
+```
+
+```{r}
+plot(d, main="Galon Baþýna Mil için Kernel Densite Çizimi")
+polygon(d, col="red", border="blue")
+
+```
+
+
+#Boxplot
+
+```{r}
+
+boxplot(mpg, data=mtcars, main="Araba Milaj Verileri", ylab="Mil/Galon") 
+
+
+```
+
+~ iþareti R'da iliþki kurma iþaretidir. 
+
+```{r}
+boxplot(mpg~carb, data=mtcars, main="Araba Milaj Verileri", xlab="Karburator Sayýsý", ylab="Mil/Galon") #her bir carburatore göre mpg boxplotý çiziyor
+
+```
+
+```{r}
+boxplot(mpg~carb, main="Aðýrlýða Karþý Yapýlan Mil",
+ xlab="carb = Karburator Sayýsý", 
+ylab="mpg = Mil per Galon",
+col=rainbow(6))
+```
+
+```{r}
+boxplot(mpg~carb, main="Galon Baþýna Yapýlan Mil",
+   yaxt="n", xlab="Mil per Galon", horizontal=TRUE,
+   col=terrain.colors(3))
+legend("topright", inset=.02, title="Karburator Sayýsý" ,c("4","6","8"), fill=terrain.colors(3), horiz=TRUE)
+
+```
+#Pie Chart
+
+```{r}
+library(plotrix)
+dilim <- c(10, 12,4, 16, 8)
+ulke <- c("ABD", "UK", "Avustralya", "Almanya", "Fransa")
+
+pie3D(dilim, labels=ulke, explode=0.1, main="Ülkeler Pie Chart")
+
+```
+
+#Dot Plot
+
+```{r}
+dotchart(mtcars$mpg, labels=row.names(mtcars), cex=.7,main="Gas Milage for Car Models",  xlab="Miles Per Gallon")
+```
+
+```{r}
+dotchart(mtcars$mpg, labels=row.names(mtcars), cex=.7, groups= mtcars$carb,main="Araba Modelleri için Gas Milage ",	xlab="Gallon Baþýna Mil", color="blue")
+
+```
+
+
+```{r}
+
+# mpg için sort et, carbinder için grupla ve renklendir 
+
+x <- mtcars[order(mtcars$mpg),] # mpg ye gore dataframe sýrala
+x$carb <- factor(x$carb) 	# sayýsal carb faktörize edilmeli
+x$color[x$carb==4] <- "red" 	
+x$color[x$carb==6] <- "blue" 	
+x$color[x$carb==8] <- "darkgreen"
+
+dotchart(x$mpg,labels=row.names(x), cex=.7,  groups= x$carb,main="Araba Modelleri için Gas Milage \n carbinder e göre Gruplanmýþ", xlab="Gallon Baþýna Mil", gcolor="black", color=x$color)
+
+
+```
+
+#Violinplot
+Yoðunluðun artýp azalmasýna göre tasarlanan plotlar vioplot paketinde 
+
+```{r}
+library(vioplot)
+x1 <- mtcars$mpg[mtcars$cyl==4]
+x2 <- mtcars$mpg[mtcars$cyl==6]
+x3 <- mtcars$mpg[mtcars$cyl==8]
+vioplot(x1, x2, x3, names=c("4 cyl", "6 cyl", "8 cyl"), col="gold")
+title("Galon Baþýna Mil için Violin Plot")
+
+
+```
+
+#Scatterplot
+```{r}
+
+plot(wt, mpg, type= "p", col= "red", 
+main="Scatterplot Örneði", 
+xlab="Araç Aðýrlýðý", ylab="Galon Baþýna Mil", pch=21)
+
+linreg<-lm(mpg~wt) 
+
+plot(wt,mpg)
+abline(linreg, col="red") #regresyon doðrusu çiziyor lm() func ile
+
+ # regression line (y~x) 
+lines(lowess(wt,mpg), col="blue") 
+ # lowess line (x,y) 
+
+```
+
+```{r}
+pairs(~mpg+disp+drat+wt, data=mtcars, 
+main="Temel Scatterplot Matrisi")
+
+#seçilmiþ olan deðiþkenler cinsinden çizilmiþ bir dot grafiði. 
+```
+
+
+function(x, ...)
+{ --> bu þekilde bir fonk tanýmlamasýna gireriz 
+
+```{r}
+panel.hist <- function(x, ...)
+{
+    usr <- par("usr"); on.exit(par(usr))
+    par(usr = c(usr[1:2], 0, 1.5) )
+    h <- hist(x, plot = FALSE)
+    breaks <- h$breaks; nB <- length(breaks)
+    y <- h$counts; y <- y/max(y)
+    rect(breaks[-nB], 0, breaks[-1], y, col = "orange")
+}
+
+```
+
+```{r}
+pairs(mtcars[1:7], panel = panel.smooth,
+      cex = 1.5, pch = 24, bg = "light blue",
+      diag.panel = panel.hist, cex.labels = 2, font.labels = 2)
+
+
+```
+
+
+```{r}
+par(mfrow=c(2,2)) #4 farklý plotun ayný anda ekrana basýlmasýný saðlýyor. 
+plot(wt,mpg, main="Scatterplot of wt vs. mpg")
+plot(wt,disp, main="Scatterplot of wt vs disp")
+hist(wt, main="Histogram of wt")
+boxplot(wt, main="Boxplot of wt") 
+
+```
+

@@ -1,0 +1,42 @@
+---
+title: "test"
+author: "busra nur darendeli"
+date: "16 Mart 2019"
+output: html_document
+---
+
+
+```{r message=FALSE, warning=FALSE}
+library(gutenbergr)
+
+?gutenbergr
+
+head(gutenberg_authors)
+
+gutenberg_metadata
+
+gutenberg_subjects
+
+``` 
+
+
+
+
+```{r}
+library(tidyverse)
+nobel_laureates <- read.csv("archive.csv")
+
+head(nobel_laureates)
+
+str(nobel_laureates)
+
+glimpse(nobel_laureates)
+attach(nobel_laureates)
+
+nobel_laureates %>% 
+  filter(Category == "Chemistry") %>% 
+  group_by(Sex) %>% 
+  count()
+
+```
+

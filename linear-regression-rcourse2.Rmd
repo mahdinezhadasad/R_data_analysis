@@ -1,0 +1,142 @@
+---
+title: "linear-regression-rcourse2"
+author: "busra nur darendeli"
+date: "15 Mart 2019"
+output: html_document
+---
+
+#Linear Regression
+
+```{r message=FALSE, warning=FALSE}
+data<-read.csv("KR.GECIK.txt")
+
+str(data)
+summary(data)
+
+attach(data)
+plot(GECIKEN, MIKTR, ylim=c(0,150), xlab="Geciken Kredi Taksidi", ylab="Çekilen Kredi Miktarý", main="Regresyon", pch=19)
+
+```
+
+```{r}
+REG<- lm(MIKTR~GECIKEN)
+REG
+#miktar ve geciken arasýnda bir denklem kuruyor, geciken taksit üzerinden miktar tahmini yapýyor
+
+summary(REG)
+
+#residual = artýklarý topladýðýmýz kýsým
+#intercept beta0 beta1 geciken deðeri bizim denklemimiz miktar = beta1*geciken+beta0
+#t deðerleri de anlamlýlýk anlamýnda iyi duruyor *, ***
+#model anlamlý mý küçük bir deper 1.49e-12
+#geciken gerçekten miktarý açýklýyor mu bunun cevabý rsquare deðeri 0.6511 
+```
+
+```{r}
+predict(REG, newdata=data.frame(GECIKEN=c(40,45,70)))
+```
+
+##güven aralýðý
+```{r}
+confint(REG)
+
+ 
+#gecikenin güven aralýðýnýn 97.5 ve %2.5luk arasýnda fena olmayan deðerler vermis 
+
+```
+
+##sýfýr ortalama varsayýmýnýn kontrolü
+```{r}
+sum(residuals(REG))/50
+
+
+#H0 ve H1 hipotezini kullanmýþtýki p deðerin küçük çýkmasý gerek dolayýsýyla H0'ý saðlýyor diyebiliriz. 
+```
+
+##sabit varyans sayýmý
+```{r}
+library(lmtest)
+bptest(REG)
+
+#p deðeri 0.05'ten düþük olanlar daha iyi kabul edilir. H0 hatalarýn varyansa eþit olmasý gerek yani homojenliðin kabul edilmesi gerek. burada %93'lük bir deðerlendirmede %95 olmasý gerek o yüzden homojenlik testinden geçemedi
+```
+
+##normallik varsayýmý
+```{r}
+shapiro.test(residuals(REG))
+
+#bu testten geçti
+```
+
+##otokorelasyon varsayýmý
+```{r}
+dwtest(REG, alternative="two.sided")
+
+#%95 güven aralýðýný saðlayamadý
+#Þartlarýn hepsini saðlamak zorundayýz. 
+
+```
+
+
+#Çoklu Doðrusal Regresyon Analizi
+
+```{r}
+data<-read.csv("B.HACM.txt")
+
+summary(data)
+
+#baðýmlý deðiþken büyüme hacmi , baðýmsýz deðiþkende güven ve firma sayýsý. bankanýn büyüme hacminde bankaya duyulan güven indeksi ve bankanýn çalýþtýðý firma sayýsý etkli mi bunu inceliyoruz. 
+
+#büyüme hacmi = beta0+ beta1*güven indeksi+ beta2*firma sayýsý
+
+```
+
+```{r}
+plot(data[,-1], pch=19, col="blue", main="BUYUME HAC-FIRMA SAY- GUVEN IND(Scatterplot)")
+
+#1.satýrý çýkarma sebebimiz ID satýrý gitsin diye
+```
+
+```{r}
+MREG<-lm(data$BUYUME.H~data$GUVEN.IND+data$FIRMA.S)
+#~ eþittir gibi kullanýlýyor
+
+summary(MREG)
+#beta0 = -57 beta1=5.7 beta2 = 0.33
+#* %99 güven aralýðýna denk gelir
+#modelin doðruluðu anlamýnda p-value 2.2e-16
+#Rsquare baðýmlý deðþken ve baðýmsýz deðiþkenlerin alakasýný veriyor 0.94
+
+```
+
+##¦sýfýr ortalama varyansý
+
+```{r}
+sum(residuals(MREG))/50
+
+#p-value kçük h0 h1 i saðlar
+```
+
+##sabit varyans varsayýmý
+
+```{r}
+bptest(MREG)
+
+#p-value 0.05ten küçük olmasý gerek 0.3 neredeyse kabul edilemez
+```
+
+##normallik varsayýmý
+
+```{r}
+shapiro.test(residuals(MREG))
+
+
+```
+
+##otokorelasyon varsayýmý
+
+```{r}
+dwtest(MREG, alternative="two.sided")
+
+```
+

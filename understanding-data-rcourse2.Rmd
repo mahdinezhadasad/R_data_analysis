@@ -1,0 +1,356 @@
+---
+title: "understanding-data-rcourse2"
+author: "busra nur darendeli"
+date: "15 Mart 2019"
+output: html_document
+---
+
+#Veriyi Anlamak - Scatter Plot
+
+```{r message=FALSE, warning=FALSE}
+library(car)
+
+p<-spm(~mpg+wt+disp+hp | cyl, data=mtcars, diagonal="boxplot")
+
+#legendi cyl'a göre oluþturdu. Simetrik grafiðimiz var herhangi iki deðiþkene göre inceleyebiliyoruz bu sayede. Gruplamayý grafiðin kendi içinde dizayn etmiþ
+```
+
+```{r}
+p<-spm(~mpg+wt+disp+hp | cyl, data=mtcars, diagonal="qqplot")
+
+#
+
+```
+
+##Korelasyon Analizi
+Korelasyon = Pearson korelasyonda bahsediliyor. Spellman ve ke.. korelasyonu da var. Default = Pearson korelasyon
+
+Korelasyon; elimizdeki iki nitelik arasýndaki durumu gözlemlemek istiyorsun. Ýki nitelik birlikte artýp azalýyorsa pozitif yönlü iliþki olduðunu tersi de negatif yönlü iliþki olduðunu gösterir. 
+
++1 ile -1 arasýndaki bir deðerlendirme mevcut olduðunda +1 ve -1'de kuvvetli ilþki olduðunu + ve - sadece pozitif negatifliði belirtir. 
+
+```{r}
+library(corrplot)
+data <- iris
+str(data)
+head(data)
+
+data <- data[,-5] #cor kodu bu iþlemi yapmadan çalýþmýyor. iris tek baþýna iken çalýþmýyor çünkü 'Species' kolonu sayý deðil, bu yüzden 'Species' kolonunu çýkarmamýz gerek bu yüzden üstteki kodu yazýyoruz. 
+
+data
+
+KOR<- cor(data) #Sepal.Length ve Petal.Length arasýnda poz bir korelasyon var (0.87)
+
+```
+
+```{r}
+mtcars
+
+Kor2 <- cor(mtcars)
+
+corrplot(Kor2) #Bu grafikler sayesinde iliþkiyi belirleyebiliyoruz.1'e doðru mavi -1'e doðru kýrmýzý olacak. 
+
+#am deðiþkeninde 1 otomatik 0 vitesli arabayý gösterir bu yüzden bu grafiði özelleþtirmek gerekiyor. 
+```
+
+```{r}
+#içerdeki þekilleri deðiþtirebiliyoruz bunu corrplot içindeki method ile yapabiliyoruz. 
+#type = lower'da simetriðin alt kýsmýný veriyor.
+
+corrplot(Kor2, method="pie", type="lower") 
+
+
+```
+
+
+```{r}
+corrplot.mixed(Kor2, lower="number", upper="circle",tl.pos="lt")
+
+#mix ile sayý ve grafikleri bir bütün halinde veriyor. lower= number dediðimizde alttakileri numara olarak vermeyi saðlýyor. 
+
+```
+
+##PerformanceAnalytics
+
+```{r}
+library(PerformanceAnalytics)
+
+chart.Correlation(mtcars, method="pearson", histogram=TRUE)
+
+#iki deðiþken arasýnda %99 korelasyon bulmamýz bunlarýn iksi arasýnda kuvvetli iliþki olduðu anlamýna gelmez. Bunlarýn istatiksel olarak anlamlý, kullanýlabilr olduðu bilgisi p-value ile veriliyor. 
+# %95 3 yýldýz %99 güven aralýðý için 2 yýldýz. %100 için p'yi sýfýr alma durumunuza göre tek yýldýz koyar.
+
+#buradaki deðerler istatiksel anlamlý olup olmadýðýný veriyor. 
+
+```
+
+
+corrgram paketinde korelasyonun farklý þekilde gösterimi söz konusu
+
+
+
+#Feature Extraction 
+
+##PCA
+
+PCA'in kendi içinde 5 farklý yöntemi mevcut. 
+
+MARS'ýn PCA'ya üstünlüðü, PCA büyük veriseti ister, MARS küçük verisetlerinde bile efektiv sonuçlar veir.
+
+PCA sayýsal deðerler için, sayýsal olmayan logic deðerler için mixPCA önerilmiþ. 
+
+verisetinde boyut kavramý satýr+sütun sayýsý. 
+Verisetinde her bir satýrý nasýl temsilliyoruz ? 11 deðiþken varsa 11 boyutlu uzayda bunlarý gözlemlemeye çalýþýrýz. Bu veriler arasýndaki varyansý anlamak zordur, boyut arttýkça bu zorlaþýr.
+
+PCA veriler uzaydayken  bu veriler için uzayda yeni düzlemler tanýmlýyor ve boyut düþürüyor. Bunlarý yaparken information kaybý yok. PC bir verisetinde kaç niteliði varsa o kadar PC'niz olabilir. 11 deðiþken için 11 PC'niz olabilr. Bu 11 PC ile veriyi yeniden tanýmlýyor. 
+
+PC'Lere bakarak katkýsý en fazla olanlarý tanýmlýyabiliyorsunuz. 
+
+Unsupervised bir yöntem sadece feature extr. için deðil tahmin yöntemlerinde de kullanýlýr. PCA'da hedef; 1.PC max varyansý barýndýrýr sadece verideki en fazla katký yapanlarý deðil gözlem yapanlarda da en yüksek deðerleri içerenleri gösterir.iki komponent üzerinde çalýþtýðýnda bunlarý dikey olarak yerleþtirir ve iki boyutlu bir ortamda tanýmlar. 
+
+
+
+
+```{r}
+library(devtools)
+install_github("vqv/ggbiplot")
+library(ggbiplot)
+```
+
+Verimizin tamamýnda varyans hesabý yapacak. 
+
+
+```{r}
+str(mtcars)
+```
+
+```{r}
+PCA.data <- prcomp(mtcars[,c(1:7,10,11)], center = TRUE,scale. = TRUE) #PCA numeric deðerlerle çalýþýyor, numeric olmadýðýný düþündüklerimizi elemiþ olduk c(1:7,10,11) ile.
+
+summary(PCA.data)
+
+#2.satýrdaki varyans deðerlerine bakarsak verisetinin içindeki informationýn %62.8i burada toplanmýþ demek. 
+#Buna göre PC1 ve PC2de özelliklerin nasýl daðýlýmýný gözlemleyeceðiz. En çok katký yapanlar PC1dekiler.
+```
+
+
+```{r}
+ggbiplot(PCA.data)
+
+#iki eksenli düþünüyoruz. saða doðru kayanlar PClerin etrafýnda toplananlar PC1 için. 
+#Bu verisetindeki araçlar nasýl farklýlaþýyoru cly, disp, carb, hp ve wt üzerinden verebiliriz.
+#noktalar gözlem deðerleri bunlara isim atayabilirsek nasýl daðýldýðýnda anlayabiliriz o yzden aþaðýdaki kod var. 
+```
+
+```{r}
+ggbiplot(PCA.data, labels=rownames(mtcars))
+
+#bununla gözlem deðerlerin nasýl daðýldýðýný görebiliyoruz. 
+#dýþarda kalanlar outlier. PC bir birim çember çizer, bu birim çemberin dýþýnda kalanlar outlierlarý oluþturur.
+#outlierlarý verisetinden silersek deðiþiklik oluþturur mu ? 
+
+```
+
+
+```{r}
+str(mtcars)
+```
+
+```{r}
+
+mtcars.country <- c(rep("Japan", 3), rep("US",4), rep("Europe", 7),rep("US",3), "Europe", rep("Japan", 3), rep("US",4), rep("Europe", 3), "US", rep("Europe", 3))
+
+ggbiplot(PCA.data,ellipse=TRUE,labels=rownames(mtcars), groups=mtcars.country)
+
+#ülkelere göre tanýmlama yaptýk. Ford Pantera standart yapýlmýþ arabalardan farklý, Europe ve Japan arabalar aþaðý yukarý ayný grupta. Asýl veryi domine eden US arabalarý. Europe arabalar içindeki kümede outlier davranan gözlem kümeleri var. 
+
+#
+
+
+```
+
+```{r}
+ggbiplot(PCA.data,ellipse=TRUE,choices=c(3,4),   labels=rownames(mtcars), groups=mtcars.country)
+
+#3 ve 4. PC'þer üzerinden daðýlýma bakýldý. choices ile 3. ve 4. PC'yi seçmiþ olduk. Özel seçim yapýlmazsa 1-2
+
+```
+
+```{r}
+ggbiplot(PCA.data,ellipse=TRUE,circle=TRUE, labels=rownames(mtcars), groups=mtcars.country)
+
+
+```
+```{r}
+ggbiplot(PCA.data,ellipse=TRUE,obs.scale = 1, var.scale = 1,var.axes=FALSE,   labels=rownames(mtcars), groups=mtcars.country)
+
+```
+
+
+```{r}
+ggbiplot(PCA.data,ellipse=TRUE,obs.scale = 1, var.scale = 1,  labels=rownames(mtcars), groups=mtcars.country) +
+scale_colour_manual(name="Origin", values= c("forest green", "red3", "dark blue"))+ ggtitle("PCA of mtcars dataset")+ theme_minimal()+theme(legend.position = "bottom")
+
+#verisetine baþlýk konuldu, legendler aþaðýda, temalarý deðiþtirildi. 
+
+```
+## PCA Example 2
+
+```{r}
+library(rgl)
+library(devtools)
+
+library(MASS)
+library(ggthemes) # orijinal temalar icin
+library(factoextra) # görsellestirme icin
+library(plyr) # revalue icin
+library(car) # matris scatterplot icin
+
+```
+Painters data --> ressamlarýn sýnýflandýrýldýðý bir veriseti
+Ressamlarda outlier olan var mý bunu araþtýrýyoruz.
+
+```{r}
+data <- painters
+
+str(data)
+head(data)
+data
+
+
+```
+
+```{r}
+data$School<-revalue(data$School,c(
+"A" = "Renaissance", 
+"B" = "Mannerist", 
+"C" = "Seicento", 
+"D" = "Venetian", 
+"E" = "Lombard", 
+"F" = "16. Yüzyýl", 
+"G" = "17. Yüzyýl", 
+"H" ="Fransýz"))
+
+data  #ressamlarý dönemlerine göre ayýrmýþ olduk. 
+
+```
+
+PCA yapacaðýmýz ve PCA sayýsal veriler için kullanýldýðýndan 5.kolonu atýyoruz.
+
+```{r}
+s.data<-data[-5]
+
+```
+
+```{r}
+scatterplotMatrix(s.data, diagonal="histogram")
+
+```
+
+```{r}
+res.pca <- prcomp(s.data, center = TRUE, scale = TRUE)
+res.pca
+
+#her bir PCA'ya göre açýklama var. HErbirine etiket bazýnda ne kadar katký yapýldýðý bilgisi var. PClerin bilgiyi taþýma yükünü görmek istesek summary 
+
+```
+
+```{r}
+print(summary(res.pca)) 
+
+#PClerin informationý ne kadar barýndýrdýðýný inceliyoruz. Buna göre PC1 en fazla varyansa sahip, PC2 %26 açýklayýcý aðýrlýklý olarak 1 2 kullanýlmalý diðerleri çok düþük kullanmasak da olur. 
+
+```
+
+PC'nin içinde bazý deðiþkenler hesaplanýyor. x'ler gözlem deðerlerinin yapmýþ olduðu katkýlar. SD'de standart sapmayla ilgili bilgi. 
+```{r}
+iliski <- res.pca$rotation
+iliski
+
+```
+
+```{r}
+
+gozlem.deger <- res.pca$x
+gozlem.deger
+
+```
+```{r}
+#korelasyon <- t(loadings)*res.pca$sdev
+#korelasyon
+```
+
+```{r}
+p1<-fviz_eig(res.pca)
+p1
+
+print(p1+theme_wsj()+ggtitle(paste("Painters: Bileþenlerin Varyanslarý  y-Range Serbest")))
+
+```
+
+```{r}
+p2 <- fviz_eig(res.pca, addlabels = TRUE, hjust = -0.4,  linecolor = "#FC4E07", barfill="white",  barcolor ="darkblue")+ ylim(0, 85)
+
+print(p2+theme_wsj()+ggtitle(paste(("Painters: Bileþenlerin %Varyanslarý y-Range %85"))))
+
+#bu grafikte katký yüzdeleri varyanslarý ile birlikte var. labels = True dediðimiz için % deðerleri ekledi
+
+```
+
+```{r}
+p3<- fviz_eig(res.pca, choice = "eigenvalue", addlabels=TRUE)
+
+print(p3+theme_wsj()+ggtitle("Painters: Eigenvalue Barplot"))
+
+#eigenvalue deðerlerini veriyor. PC'Lerde eigen vectorler çiziyorduk en fazla deðerler sahip olanlar eigenvalue 
+
+```
+
+```{r}
+p4<- fviz_pca_ind(res.pca, label="ind", habillage=data$School, addEllipses=TRUE, ellipse.level=0.95)
+
+print(p4+theme_wsj()+ggtitle("Painters: Gözlemlerin Ekol Daðýlýmý"))
+
+#ressamlarýn ekollerine göre bir grafik çizeceðiz normalde bu veri kolonunu numeric deðil diye atmýþtýk. 
+
+```
+
+```{r}
+
+p5<- fviz_pca_ind(res.pca, col.ind="contrib")+
+scale_color_gradient2(low="orange", mid="red", high="darkred", midpoint=4)
+
+print(p5+theme_wsj()+ggtitle("Painters: Gözlemlerin Gradient Katkýlarý"))
+
+#katkýlarýný baz alarak yapýlan grafik bu. komponentlerin oluþmasýndaki baskýnlýklar olarak düþünülmüyor katkýsý artanlar koyu renkli. saða doðru kayanlar daha baskýn deðerlere sahip. Fr.Penni contrib yüksek fakat diðerlerine oranla outlier 
+
+```
+
+```{r}
+p6<- fviz_pca_biplot(res.pca) 
+
+print(p6+theme_wsj()) 
+
+#niteliklerin komponent oluþumuna yaptýklarý katkýyý görüyoruz. Renklendirme çok bu iþleme dahil deðilmiþ grafiðe göre
+```
+
+
+```{r}
+p7<- fviz_contrib(res.pca, choice="ind", axes =1, sort.val ="asc" )
+
+print(p7+coord_flip()+theme_wsj())
+
+#gözlem deðerleri üzerinden PC1in oluþumundaki katkýlarý görüyoruz. Bunun saðladýðý verisetindeki outllierlarý atacak mýyýz kalacak mý bu soruya cevap verebilir. örn araba motor gücünü analiz ediyorsak ve carblar motor güclerini baskýlýyorsa bunlarý çýkarabiliriz. 
+#
+
+```
+
+```{r}
+p8<- fviz_contrib(res.pca, choice="ind", axes = 2, sort.val ="asc" )
+
+print(p8+coord_flip()+theme_wsj())
+
+#2.boyutta yaptýkalrý katkýlar. 2.boyutta deðerlendirileceksek PEnniyi çýkarmalýyýz. Penniden kaynaklý o tarafa bir sürüklenme var Penni çýkarýlsa doðal daðýlým gerçekleþebilir. 
+
+```
+
